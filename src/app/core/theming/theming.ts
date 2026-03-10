@@ -23,7 +23,7 @@ export class Theming {
   private themeConfig = inject(THEME_CONFIG);
 
   // State
-  private prefersDarkMode = this.media.match('(prefers-color-scheme: dark)');
+  private prefersDarkMode = this.media.match('(prefers-color-scheme: light)');
 
   colors = signal<Colors>({
     primary: this.themeConfig.primary,
