@@ -20,9 +20,4 @@ export const routes: Route[] = [
     loadChildren: () => import('./domains/admin/routes'),
   },
 
-  // Coming soon
-  {
-    path: 'coming-soon',
-    loadChildren: () => import('./domains/coming-soon/routes'),
-  },
 ];
