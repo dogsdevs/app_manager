@@ -1,13 +1,11 @@
 import { Component } from '@angular/core';
-import { MatButton } from '@angular/material/button';
-import { MatIcon } from '@angular/material/icon';
 import { Navigation } from '@/app/domains/admin/layout/ui/navigation';
 import { Notifications } from '@/app/domains/admin/layout/ui/notifications';
 import { User } from '@/app/domains/admin/layout/ui/user';
 
 @Component({
   selector: 'admin-sidebar',
-  imports: [Navigation, User, Notifications, MatButton, MatIcon],
+  imports: [Navigation, User, Notifications],
   host: {
     class: 'flex w-full flex-auto flex-col',
   },
@@ -16,8 +14,9 @@ import { User } from '@/app/domains/admin/layout/ui/user';
     <div class="relative flex items-center gap-x-2.5 pt-5 pr-4 pb-0 pl-6">
       <!-- Logo -->
       <img
-        src="/images/logo/logo.svg"
-        class="size-8"
+        src="/images/logo/dogs_devs.svg"
+        style="filter: invert(1);"
+        class="size-10"
         alt="Fuse logo"
       />
 
@@ -25,10 +24,10 @@ import { User } from '@/app/domains/admin/layout/ui/user';
         <div
           class="text-on-surface text-lg leading-none font-bold tracking-wider"
         >
-          FUSE
+          App 
         </div>
         <div class="font-mono text-2xs leading-3 font-medium tracking-tighter">
-          Angular
+          Manager
         </div>
       </div>
 
@@ -45,7 +44,7 @@ import { User } from '@/app/domains/admin/layout/ui/user';
     <div class="flex-auto"></div>
 
     <!-- Sidebar notification -->
-    <div
+    <!-- <div
       class="m-4 mb-2 rounded-lg border border-neutral-900/5 bg-neutral-900/5 p-4 dark:border-neutral-50/5 dark:bg-neutral-50/5"
     >
       <div class="font-semibold">Your trial is expiring soon!</div>
@@ -63,7 +62,7 @@ import { User } from '@/app/domains/admin/layout/ui/user';
           iconPositionEnd
         />
       </button>
-    </div>
+    </div> -->
 
     <!-- Footer -->
     <div class="p-2">
