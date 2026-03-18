@@ -16,6 +16,7 @@ import {
 } from '@angular/router';
 import { provideIcons } from '@/app/core/icons/provider';
 import { provideTheming } from '@/app/core/theming';
+import { APP_CONSTANTS } from './app.constants';
 import { routes } from './app.routes';
 
 export const appConfig: ApplicationConfig = {
@@ -40,10 +41,6 @@ export const appConfig: ApplicationConfig = {
 
     // Core
     provideIcons(),
-    provideTheming({
-      scheme: 'light',
-      primary: '#3b82f6',
-      error: '#dc2626',
-    }),
+    provideTheming(APP_CONSTANTS.theme),
   ],
 };

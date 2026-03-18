@@ -1,4 +1,5 @@
-import { Component } from '@angular/core';
+import { Component, computed, inject } from '@angular/core';
+import { Theming } from '@/app/core/theming';
 import { Navigation } from '@/app/domains/admin/layout/ui/navigation';
 import { Notifications } from '@/app/domains/admin/layout/ui/notifications';
 import { User } from '@/app/domains/admin/layout/ui/user';
@@ -15,7 +16,7 @@ import { User } from '@/app/domains/admin/layout/ui/user';
       <!-- Logo -->
       <img
         src="/images/logo/dogs_devs.svg"
-        style="filter: invert(1);"
+        [style.filter]="isLightMode() ? 'invert(1)' : 'none'"
         class="size-10"
         alt="Fuse logo"
       />
@@ -70,4 +71,8 @@ import { User } from '@/app/domains/admin/layout/ui/user';
     </div>
   `,
 })
-export class AdminSidebar {}
+export class AdminSidebar {
+  private theming = inject(Theming);
+  
+  isLightMode = computed(() => this.theming.scheme() === 'light');
+}
