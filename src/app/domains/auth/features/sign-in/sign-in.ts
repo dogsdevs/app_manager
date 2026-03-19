@@ -13,6 +13,7 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
 import { Router, RouterLink } from '@angular/router';
+import { APP_CONSTANTS } from '@/app/app.constants';
 
 @Component({
   selector: 'auth-sign-in',
@@ -48,8 +49,7 @@ export default class AuthSignIn {
     event.preventDefault();
 
     submit(this.signInForm, async () => {
-      // Navigate to a route, demo purposes only
-      this.router.navigateByUrl('/admin/dashboards');
+      this.router.navigateByUrl(APP_CONSTANTS.routes.admin.home);
     });
   }
 }

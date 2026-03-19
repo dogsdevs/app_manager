@@ -65,7 +65,7 @@ import {
               <a
                 cdkMonitorElementFocus
                 ngTreeItem
-                routerLinkActive="bg-neutral-700/10 dark:bg-neutral-300/10"
+                routerLinkActive="bg-primary-500 text-white hover:text-[inherit]"
                 class="navigation-item flex cursor-pointer items-center gap-x-2 rounded-lg px-2.5 py-2 select-none hover:bg-neutral-700/10 dark:hover:bg-neutral-300/10"
                 [parent]="parent"
                 [value]="node.id"

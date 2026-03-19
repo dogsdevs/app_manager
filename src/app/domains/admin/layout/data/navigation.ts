@@ -19,7 +19,7 @@ export const NAVIGATION: NavigationItem[] = [
     children: [
       {
         id: 'general/home',
-        label: 'Home',
+        label: 'Inicio',
         icon: 'house',
         route: '/admin/home',
       },
@@ -27,7 +27,7 @@ export const NAVIGATION: NavigationItem[] = [
   },
   {
     id: 'management',
-    label: 'Management',
+    label: 'Gestión',
     children: [
       {
         id: 'management/roles',
@@ -37,7 +37,7 @@ export const NAVIGATION: NavigationItem[] = [
       },
       {
         id: 'management/users',
-        label: 'Users',
+        label: 'Usuarios',
         icon: 'users',
         route: '/admin/management/users',
       },
