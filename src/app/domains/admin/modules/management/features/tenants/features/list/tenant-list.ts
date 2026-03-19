@@ -20,6 +20,8 @@ import { Media } from '@/app/core/media';
 import { HighlightPipe } from '@/app/core/pipes/highlight.pipe';
 import { ConfirmationDialogService } from '@/app/core/services/confirmation-dialog.service';
 import { TenantsService } from '../../data/tenants-service';
+import { Subject } from 'rxjs';
+import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
 
 type DrawerMode = 'closed' | 'create' | 'edit';
 
@@ -67,7 +69,7 @@ export default class TenantList implements AfterViewInit {
   isDrawerOpen = computed(() => this.drawerMode() !== 'closed');
 
   displayedColumns: string[] = ['name', 'slug', 'actions'];
-  
+
   tenants = this.tenantsService.tenants;
   loading = this.tenantsService.loading;
   loadingList = this.tenantsService.loadingList;
@@ -75,8 +77,17 @@ export default class TenantList implements AfterViewInit {
   dataSource = this.tenantsService.dataSource;
   searchTerm = this.tenantsService.searchTerm;
 
+  private searchSubject = new Subject<string>();
+
   constructor() {
     this.tenantsService.loadTenants();
+
+    this.searchSubject.pipe(
+      debounceTime(300),
+      distinctUntilChanged()
+    ).subscribe(searchValue => {
+      this.tenantsService.applySearchFilter(searchValue);
+    });
   }
 
   ngAfterViewInit(): void {
@@ -86,7 +97,7 @@ export default class TenantList implements AfterViewInit {
 
   applyFilter(event: Event): void {
     const filterValue = (event.target as HTMLInputElement).value;
-    this.tenantsService.applySearchFilter(filterValue);
+    this.searchSubject.next(filterValue);
   }
 
   clearSearch(): void {

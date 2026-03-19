@@ -1,6 +1,7 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
-import { Observable } from 'rxjs';
+import { Observable, forkJoin, timer } from 'rxjs';
+import { map } from 'rxjs/operators';
 import { Tenant } from './tenant-model';
 import { environment } from '../../../../../../../../environments/environment';
 
@@ -14,7 +15,12 @@ export class TenantsApiService {
     if (q) {
       params = params.set('q', q);
     }
-    return this.http.get<Tenant[]>(this.apiUrl, { params });
+
+    const request$ = this.http.get<Tenant[]>(this.apiUrl, { params });
+
+    return forkJoin([request$, timer(350)]).pipe(
+      map(([response]) => response)
+    );
   }
 
   getById(id: number): Observable<Tenant> {

@@ -1,7 +1,7 @@
 import { effect, inject, Injectable, signal, computed } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { MatTableDataSource } from '@angular/material/table';
-import { catchError, of, tap } from 'rxjs';
+import { catchError, of, tap, retry } from 'rxjs';
 import { NotificationService } from '@/app/core/services/notification.service';
 import { Tenant } from './tenant-model';
 import { TenantsApiService } from './tenants-api-service';
@@ -16,7 +16,7 @@ export class TenantsService {
   loadingList = signal<boolean>(false);
   error = signal<string | null>(null);
   searchTerm = signal<string>('');
-  
+
   dataSource = new MatTableDataSource<Tenant>([]);
 
   constructor() {
@@ -37,6 +37,7 @@ export class TenantsService {
     this.tenantsApiService
       .getAll(this.searchTerm())
       .pipe(
+        retry({ count: 2, delay: 1000 }),
         tap((tenants) => {
           this.tenants.set(tenants);
           this.loadingList.set(false);

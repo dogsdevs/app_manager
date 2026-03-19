@@ -30,6 +30,12 @@ export const NAVIGATION: NavigationItem[] = [
     label: 'Gestión',
     children: [
       {
+        id: 'management/tenants',
+        label: 'Tenants',
+        icon: 'building',
+        route: '/admin/management/tenants',
+      },
+      {
         id: 'management/roles',
         label: 'Roles',
         icon: 'clipboard-list',

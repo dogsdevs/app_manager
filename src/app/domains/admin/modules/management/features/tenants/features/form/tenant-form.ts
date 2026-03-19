@@ -37,7 +37,6 @@ export default class TenantForm implements OnInit, AfterViewInit {
   private tenantsListComponent = inject(TenantList);
   private tenantsService = inject(TenantsService);
   private route = inject(ActivatedRoute);
-  private router = inject(Router);
 
   @ViewChild('nameField') nameField!: ElementRef;
 
@@ -45,9 +44,9 @@ export default class TenantForm implements OnInit, AfterViewInit {
   tenantId = signal<number | null>(null);
   isEditMode = computed(() => this.tenantId() !== null);
   formTitle = computed(() => this.isEditMode() ? 'Editar Tenant' : 'Nuevo Tenant');
-  formDescription = computed(() => 
-    this.isEditMode() 
-      ? 'Modifica los detalles del tenant seleccionado' 
+  formDescription = computed(() =>
+    this.isEditMode()
+      ? 'Modifica los detalles del tenant seleccionado'
       : 'Completa la información para crear un nuevo tenant'
   );
   loading = this.tenantsService.loading;
@@ -72,7 +71,7 @@ export default class TenantForm implements OnInit, AfterViewInit {
 
   loadTenantData(id: number): void {
     const tenant = this.tenantsService.tenants().find(t => t.id === id);
-    
+
     if (tenant) {
       this.tenantForm.patchValue({
         name: tenant.name,
@@ -85,13 +84,13 @@ export default class TenantForm implements OnInit, AfterViewInit {
     if (this.tenantForm.invalid) {
       return;
     }
-    
+
     const tenantData = this.tenantForm.value;
-    
+
     const operation$ = this.isEditMode()
       ? this.tenantsService.updateTenant(this.tenantId()!, tenantData)
       : this.tenantsService.createTenant(tenantData);
-    
+
     operation$.subscribe((result) => {
       if (result) {
         this.closeDrawer();
