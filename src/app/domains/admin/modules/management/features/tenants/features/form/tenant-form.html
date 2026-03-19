@@ -1,0 +1,76 @@
+<div class="flex flex-auto">
+  <form
+    class="flex flex-auto flex-col overflow-y-auto p-6 pt-2 sm:p-4 sm:pt-4"
+    [formGroup]="tenantForm"
+  >
+    <div class="lg:px-md-4 flex items-center gap-x-6 py-4 lg:py-4">
+      <div class="flex flex-col gap-y-0.5">
+        <div class="text-xl font-semibold tracking-tighter sm:text-2xl">
+          {{ formTitle() }}
+        </div>
+        <div class="text-neutral-500">{{ formDescription() }}</div>
+      </div>
+
+      <!-- Spacer -->
+      <div class="flex-auto"></div>
+
+      <!-- Actions -->
+      <div class="flex items-center">
+        <button
+          matButton="outlined"
+          [matTooltip]="'Cancel'"
+          (click)="closeDrawer()"
+        >
+          Cancel
+        </button>
+        <button
+          class="ml-2"
+          matButton="filled"
+          [matTooltip]="'Save'"
+          [disabled]="tenantForm.invalid || loading()"
+          (click)="save()"
+        >
+          @if (loading()) {
+            <mat-icon class="animate-spin" svgIcon="loader-circle" />
+          } @else {
+            <mat-icon svgIcon="save" />
+          }
+          Guardar
+        </button>
+      </div>
+    </div>
+    <mat-divider class="mb-8 mt-1"></mat-divider>
+
+    <!-- Name & Slug Fields -->
+    <div class="flex flex-col gap-4">
+      <mat-form-field
+        class="w-full"
+        [subscriptSizing]="'dynamic'"
+      >
+        <mat-label>Nombre</mat-label>
+        <input
+          matInput
+          [disabled]="loading()"
+          [formControlName]="'name'"
+          [spellcheck]="false"
+          cdkTextareaAutosize
+          #nameField
+        />
+      </mat-form-field>
+
+      <mat-form-field
+        class="w-full"
+        [subscriptSizing]="'dynamic'"
+      >
+        <mat-label>Slug</mat-label>
+        <input
+          matInput
+          [disabled]="loading()"
+          [formControlName]="'slug'"
+          [spellcheck]="false"
+          cdkTextareaAutosize
+        />
+      </mat-form-field>
+    </div>
+  </form>
+</div>
