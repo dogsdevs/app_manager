@@ -18,7 +18,7 @@ import { TableSkeletonComponent } from '@/app/core/components/table-skeleton/tab
 import { MatPaginatorIntlEs } from '@/app/core/i18n/mat-paginator-intl-es';
 import { Media } from '@/app/core/media';
 import { HighlightPipe } from '@/app/core/pipes/highlight.pipe';
-import { ConfirmationDialogService } from '@/app/core/services/confirmation-dialog.service';
+import { DialogService } from '@/app/core/services/dialog.service';
 import { TenantsService } from '../../data/tenants-service';
 import { Subject } from 'rxjs';
 import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
@@ -53,7 +53,7 @@ export default class TenantList implements AfterViewInit {
   private media = inject(Media);
   private router = inject(Router);
   private tenantsService = inject(TenantsService);
-  private confirmationDialog = inject(ConfirmationDialogService);
+  private confirmationDialog = inject(DialogService);
 
   @ViewChild(MatDrawer) matDrawer!: MatDrawer;
   @ViewChild(MatSort) sort!: MatSort;

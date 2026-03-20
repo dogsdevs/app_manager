@@ -1,8 +1,5 @@
 <div class="flex flex-auto">
-  <form
-    class="flex flex-auto flex-col overflow-y-auto p-6 pt-2 sm:p-4 sm:pt-4"
-    [formGroup]="tenantForm"
-  >
+  <form class="flex flex-auto flex-col overflow-y-auto p-6 pt-2 sm:p-4 sm:pt-4" [formGroup]="tenantForm">
     <div class="lg:px-md-4 flex items-center gap-x-6 py-4 lg:py-4">
       <div class="flex flex-col gap-y-0.5">
         <div class="text-xl font-semibold tracking-tighter sm:text-2xl">
@@ -16,24 +13,15 @@
 
       <!-- Actions -->
       <div class="flex items-center">
-        <button
-          matButton="outlined"
-          [matTooltip]="'Cancel'"
-          (click)="closeDrawer()"
-        >
-          Cancel
+        <button matButton="outlined" [matTooltip]="'Cerrar formulario'" (click)="closeDrawer()">
+          Cerrar
         </button>
-        <button
-          class="ml-2"
-          matButton="filled"
-          [matTooltip]="'Save'"
-          [disabled]="tenantForm.invalid || loading()"
-          (click)="save()"
-        >
+        <button class="ml-2" matButton="filled" [matTooltip]="'Guardar tenant'"
+          [disabled]="isSaveDisabled" (click)="save()">
           @if (loading()) {
-            <mat-icon class="animate-spin" svgIcon="loader-circle" />
+          <mat-icon class="animate-spin" svgIcon="loader-circle" />
           } @else {
-            <mat-icon svgIcon="save" />
+          <mat-icon svgIcon="save" />
           }
           Guardar
         </button>
@@ -42,35 +30,36 @@
     <mat-divider class="mb-8 mt-1"></mat-divider>
 
     <!-- Name & Slug Fields -->
-    <div class="flex flex-col gap-4">
-      <mat-form-field
-        class="w-full"
-        [subscriptSizing]="'dynamic'"
-      >
+    <div class="flex flex-col gap-2">
+      <mat-form-field class="w-full" [subscriptSizing]="'fixed'">
         <mat-label>Nombre</mat-label>
-        <input
-          matInput
-          [disabled]="loading()"
-          [formControlName]="'name'"
-          [spellcheck]="false"
-          cdkTextareaAutosize
-          #nameField
-        />
+        <input matInput [disabled]="loading()" [formControlName]="'name'" [spellcheck]="false" cdkTextareaAutosize
+          #nameField />
+        @if (tenantForm.get('name')?.hasError('required') && tenantForm.get('name')?.touched) {
+        <mat-error>El nombre es requerido</mat-error>
+        }
       </mat-form-field>
 
-      <mat-form-field
-        class="w-full"
-        [subscriptSizing]="'dynamic'"
-      >
+      <mat-form-field class="w-full" [subscriptSizing]="'fixed'">
         <mat-label>Slug</mat-label>
-        <input
-          matInput
-          [disabled]="loading()"
-          [formControlName]="'slug'"
-          [spellcheck]="false"
-          cdkTextareaAutosize
-        />
+        <input matInput [disabled]="loading()" [formControlName]="'slug'" [spellcheck]="false" cdkTextareaAutosize />
+        @if (tenantForm.get('slug')?.hasError('required') && tenantForm.get('slug')?.touched) {
+        <mat-error>El slug es requerido</mat-error>
+        }
+        @if (tenantForm.get('slug')?.hasError('pattern') && tenantForm.get('slug')?.touched) {
+        <mat-error>El slug debe contener solo letras, números y guiones</mat-error>
+        }
       </mat-form-field>
+
+      <!-- <button [matTooltip]="'Guardar tenant'" type="submit" matButton="filled" class="w-full"
+        [disabled]="tenantForm.invalid || loading()" (click)="save()">
+        @if (loading()) {
+        <mat-icon class="animate-spin" svgIcon="loader-circle" />
+        } @else {
+        <mat-icon svgIcon="save" />
+        }
+        Guardar
+      </button> -->
     </div>
   </form>
 </div>

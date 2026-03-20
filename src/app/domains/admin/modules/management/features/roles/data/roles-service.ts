@@ -2,14 +2,16 @@ import { effect, inject, Injectable, signal, computed } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { MatTableDataSource } from '@angular/material/table';
 import { catchError, of, tap } from 'rxjs';
-import { NotificationService } from '@/app/core/services/notification.service';
+import { SnackbarService } from '@/app/core/services/snackbar.service';
+import { DialogService } from '@/app/core/services/dialog.service';
 import { Role } from './role-model';
 import { RolesApiService } from './roles-api-service';
 
 @Injectable({ providedIn: 'root' })
 export class RolesService {
   private rolesApiService = inject(RolesApiService);
-  private notificationService = inject(NotificationService);
+  private snackbarService = inject(SnackbarService);
+  private dialogService = inject(DialogService);
 
   roles = signal<Role[]>([]);
   loading = signal<boolean>(false);
@@ -105,12 +107,12 @@ export class RolesService {
         tap((newRole) => {
           this.roles.update((roles) => [...roles, newRole]);
           this.loading.set(false);
-          this.notificationService.success('Rol creado exitosamente');
+          this.snackbarService.success('Rol creado exitosamente');
         }),
         catchError((error) => {
           this.error.set('Error al crear el rol');
           this.loading.set(false);
-          this.notificationService.error('Error al crear el rol');
+          this.dialogService.errorAlert('Error al crear el rol');
           console.error('Error creating role:', error);
           return of(null);
         })
@@ -129,12 +131,12 @@ export class RolesService {
             roles.map((r) => (r.id === id ? updatedRole : r))
           );
           this.loading.set(false);
-          this.notificationService.success('Rol actualizado exitosamente');
+          this.snackbarService.success('Rol actualizado exitosamente');
         }),
         catchError((error) => {
           this.error.set('Error al actualizar el rol');
           this.loading.set(false);
-          this.notificationService.error('Error al actualizar el rol');
+          this.dialogService.errorAlert('Error al actualizar el rol');
           console.error('Error updating role:', error);
           return of(null);
         })
@@ -151,12 +153,12 @@ export class RolesService {
         tap(() => {
           this.roles.update((roles) => roles.filter((r) => r.id !== id));
           this.loading.set(false);
-          this.notificationService.success('Rol eliminado exitosamente');
+          this.snackbarService.success('Rol eliminado exitosamente');
         }),
         catchError((error) => {
           this.error.set('Error al eliminar el rol');
           this.loading.set(false);
-          this.notificationService.error('Error al eliminar el rol');
+          this.dialogService.errorAlert('Error al eliminar el rol');
           console.error('Error deleting role:', error);
           return of(null);
         })
@@ -175,12 +177,12 @@ export class RolesService {
           );
           this.loadingToggle.set(null);
           const message = enabled ? 'Rol habilitado exitosamente' : 'Rol deshabilitado exitosamente';
-          this.notificationService.success(message);
+          this.snackbarService.success(message);
         }),
         catchError((error) => {
           this.error.set('Error al cambiar el estado del rol');
           this.loadingToggle.set(null);
-          this.notificationService.error('Error al cambiar el estado del rol');
+          this.dialogService.errorAlert('Error al cambiar el estado del rol');
           console.error('Error toggling role enabled:', error);
           return of(null);
         })

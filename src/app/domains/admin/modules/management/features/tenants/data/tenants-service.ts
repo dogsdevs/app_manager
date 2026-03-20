@@ -2,14 +2,18 @@ import { effect, inject, Injectable, signal, computed } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { MatTableDataSource } from '@angular/material/table';
 import { catchError, of, tap, retry } from 'rxjs';
-import { NotificationService } from '@/app/core/services/notification.service';
+import { SnackbarService } from '@/app/core/services/snackbar.service';
+import { DialogService } from '@/app/core/services/dialog.service';
+import { CatchErrorService } from '@/app/core/services/catch-error.service';
 import { Tenant } from './tenant-model';
 import { TenantsApiService } from './tenants-api-service';
 
 @Injectable({ providedIn: 'root' })
 export class TenantsService {
   private tenantsApiService = inject(TenantsApiService);
-  private notificationService = inject(NotificationService);
+  private snackbarService = inject(SnackbarService);
+  private dialogService = inject(DialogService);
+  private catchErrorService = inject(CatchErrorService);
 
   tenants = signal<Tenant[]>([]);
   loading = signal<boolean>(false);
@@ -27,7 +31,7 @@ export class TenantsService {
 
   applySearchFilter(searchValue: string): void {
     this.searchTerm.set(searchValue.trim());
-    this.loadTenants(); // Trigger API call for server-side search
+    this.loadTenants();
   }
 
   loadTenants(): void {
@@ -43,9 +47,9 @@ export class TenantsService {
           this.loadingList.set(false);
         }),
         catchError((error) => {
-          this.error.set('Error al cargar los tenants');
+          const errorMessage = this.catchErrorService.getMessage(error, 'Error al cargar los tenants');
+          this.error.set(errorMessage);
           this.loadingList.set(false);
-          console.error('Error loading tenants:', error);
           return of([]);
         })
       )
@@ -56,8 +60,8 @@ export class TenantsService {
     return toSignal(
       this.tenantsApiService.getById(id).pipe(
         catchError((error) => {
-          this.error.set('Error al cargar el tenant');
-          console.error('Error loading tenant:', error);
+          const errorMessage = this.catchErrorService.getMessage(error, 'Error al cargar el tenant');
+          this.error.set(errorMessage);
           return of(null);
         })
       )
@@ -74,13 +78,13 @@ export class TenantsService {
         tap((newTenant) => {
           this.tenants.update((tenants) => [...tenants, newTenant]);
           this.loading.set(false);
-          this.notificationService.success('Tenant creado exitosamente');
+          this.snackbarService.success('Tenant creado');
         }),
         catchError((error) => {
-          this.error.set('Error al crear el tenant');
+          const errorMessage = this.catchErrorService.getMessage(error, 'Error al crear el tenant');
+          this.error.set(errorMessage);
           this.loading.set(false);
-          this.notificationService.error('Error al crear el tenant');
-          console.error('Error creating tenant:', error);
+          this.dialogService.errorAlert(errorMessage);
           return of(null);
         })
       );
@@ -89,7 +93,6 @@ export class TenantsService {
   updateTenant(id: number, tenant: Partial<Tenant>) {
     this.loading.set(true);
     this.error.set(null);
-
     return this.tenantsApiService
       .update(id, tenant)
       .pipe(
@@ -98,13 +101,13 @@ export class TenantsService {
             tenants.map((t) => (t.id === id ? updatedTenant : t))
           );
           this.loading.set(false);
-          this.notificationService.success('Tenant actualizado exitosamente');
+          this.snackbarService.success('Tenant actualizado');
         }),
         catchError((error) => {
-          this.error.set('Error al actualizar el tenant');
+          const errorMessage = this.catchErrorService.getMessage(error, 'Error al actualizar el tenant');
+          this.error.set(errorMessage);
           this.loading.set(false);
-          this.notificationService.error('Error al actualizar el tenant');
-          console.error('Error updating tenant:', error);
+          this.dialogService.errorAlert(errorMessage);
           return of(null);
         })
       );
@@ -120,13 +123,13 @@ export class TenantsService {
         tap(() => {
           this.tenants.update((tenants) => tenants.filter((t) => t.id !== id));
           this.loading.set(false);
-          this.notificationService.success('Tenant eliminado exitosamente');
+          this.snackbarService.success('Tenant eliminado');
         }),
         catchError((error) => {
-          this.error.set('Error al eliminar el tenant');
+          const errorMessage = this.catchErrorService.getMessage(error, 'Error al eliminar el tenant');
+          this.error.set(errorMessage);
           this.loading.set(false);
-          this.notificationService.error('Error al eliminar el tenant');
-          console.error('Error deleting tenant:', error);
+          this.dialogService.errorAlert(errorMessage);
           return of(null);
         })
       );

@@ -1,5 +1,6 @@
 import { TextFieldModule } from '@angular/cdk/text-field';
-import { AfterViewInit, Component, computed, ElementRef, inject, OnInit, signal, ViewChild } from '@angular/core';
+import { AfterViewInit, Component, computed, ElementRef, inject, OnInit, signal, ViewChild, DestroyRef } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule, ReactiveFormsModule, UntypedFormBuilder, UntypedFormGroup, Validators } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatRippleModule } from '@angular/material/core';
@@ -10,9 +11,10 @@ import { MatInputModule } from '@angular/material/input';
 import { MatMenuModule } from '@angular/material/menu';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatTooltipModule } from '@angular/material/tooltip';
-import { ActivatedRoute, Router } from '@angular/router';
+import { ActivatedRoute } from '@angular/router';
 import { TenantsService } from '../../data/tenants-service';
 import TenantList from '../list/tenant-list';
+import { FormChangesDetectorService } from '@/app/core/services/form-changes-detector.service';
 
 @Component({
   selector: 'management-tenant-form',
@@ -37,8 +39,19 @@ export default class TenantForm implements OnInit, AfterViewInit {
   private tenantsListComponent = inject(TenantList);
   private tenantsService = inject(TenantsService);
   private route = inject(ActivatedRoute);
+  private formChangesDetector = inject(FormChangesDetectorService);
+  private destroyRef = inject(DestroyRef);
 
   @ViewChild('nameField') nameField!: ElementRef;
+
+  hasChanges = signal<boolean>(true);
+
+  get isSaveDisabled(): boolean {
+    if (this.tenantForm.invalid) return true;
+    if (this.loading()) return true;
+    if (this.isEditMode() && this.hasChanges() === false) return true;
+    return false;
+  }
 
   tenantForm!: UntypedFormGroup;
   tenantId = signal<number | null>(null);
@@ -73,10 +86,16 @@ export default class TenantForm implements OnInit, AfterViewInit {
     const tenant = this.tenantsService.tenants().find(t => t.id === id);
 
     if (tenant) {
-      this.tenantForm.patchValue({
+      const originalData = {
         name: tenant.name,
         slug: tenant.slug,
-      });
+      };
+
+      this.tenantForm.patchValue(originalData);
+
+      this.formChangesDetector.observeChanges(this.tenantForm, originalData)
+        .pipe(takeUntilDestroyed(this.destroyRef))
+        .subscribe(changed => this.hasChanges.set(changed));
     }
   }
 

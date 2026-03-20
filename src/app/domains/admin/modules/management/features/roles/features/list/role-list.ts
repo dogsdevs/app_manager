@@ -19,7 +19,7 @@ import { TableSkeletonComponent } from '@/app/core/components/table-skeleton/tab
 import { MatPaginatorIntlEs } from '@/app/core/i18n/mat-paginator-intl-es';
 import { Media } from '@/app/core/media';
 import { HighlightPipe } from '@/app/core/pipes/highlight.pipe';
-import { ConfirmationDialogService } from '@/app/core/services/confirmation-dialog.service';
+import { DialogService } from '@/app/core/services/dialog.service';
 import { RolesService } from '../../data/roles-service';
 
 
@@ -54,7 +54,7 @@ export default class RoleList implements AfterViewInit {
   private media = inject(Media);
   private router = inject(Router);
   private rolesService = inject(RolesService);
-  private confirmationDialog = inject(ConfirmationDialogService);
+  private confirmationDialog = inject(DialogService);
 
   @ViewChild(MatDrawer) matDrawer!: MatDrawer;
   @ViewChild(MatSort) sort!: MatSort;
@@ -70,7 +70,7 @@ export default class RoleList implements AfterViewInit {
   isDrawerOpen = computed(() => this.drawerMode() !== 'closed');
 
   displayedColumns: string[] = ['indicator', 'name', 'enabled', 'actions'];
-  
+
   roles = this.rolesService.roles;
   loading = this.rolesService.loading;
   loadingList = this.rolesService.loadingList;

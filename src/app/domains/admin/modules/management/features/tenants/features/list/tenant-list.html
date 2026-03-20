@@ -32,7 +32,12 @@
         <div class="flex w-full flex-col items-center gap-4 sm:flex-row sm:flex-auto">
           <mat-form-field class="w-full sm:min-w-96 sm:max-w-2xl">
             <mat-icon matPrefix svgIcon="search" />
-            <input placeholder="Buscar tenants por nombre..." matInput (keyup)="applyFilter($event)" #input />
+            <input placeholder="Buscar tenants por nombre..." matInput (keyup)="applyFilter($event)" #input>
+            <!-- @if (input.value) {
+            <button matIconButton class="tiny" (click)="clearSearch()">
+              <mat-icon svgIcon="x" />
+            </button>
+            } -->
           </mat-form-field>
         </div>
 
