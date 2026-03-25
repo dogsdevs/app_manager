@@ -31,3 +31,5 @@ export const APP_CONSTANTS = {
     error: '#dc2626',
   },
 } as const;
+
+export const tentantId = '4';
