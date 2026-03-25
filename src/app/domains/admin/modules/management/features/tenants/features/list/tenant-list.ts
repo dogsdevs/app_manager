@@ -9,24 +9,24 @@ import { MatPaginator, MatPaginatorIntl } from '@angular/material/paginator';
 import { MatPaginatorModule } from '@angular/material/paginator';
 import { MatDrawer } from '@angular/material/sidenav';
 import { MatSidenavModule } from '@angular/material/sidenav';
-import { MatSlideToggle } from '@angular/material/slide-toggle';
 import { MatSort, MatSortModule } from '@angular/material/sort';
 import { MatTableModule } from '@angular/material/table';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { Router, RouterOutlet } from '@angular/router';
+import { Subject } from 'rxjs';
+import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
 import { EmptyStateComponent } from '@/app/core/components/empty-state/empty-state.component';
 import { TableSkeletonComponent } from '@/app/core/components/table-skeleton/table-skeleton.component';
 import { MatPaginatorIntlEs } from '@/app/core/i18n/mat-paginator-intl-es';
 import { Media } from '@/app/core/media';
 import { HighlightPipe } from '@/app/core/pipes/highlight.pipe';
 import { DialogService } from '@/app/core/services/dialog.service';
-import { RolesService } from '../../data/roles-service';
-
+import { TenantsService } from '../../data/tenants-service';
 
 type DrawerMode = 'closed' | 'create' | 'edit';
 
 @Component({
-  selector: 'management-role-list',
+  selector: 'management-tenant-list',
   imports: [
     MatIcon,
     MatButton,
@@ -37,7 +37,6 @@ type DrawerMode = 'closed' | 'create' | 'edit';
     MatSortModule,
     MatIconButton,
     MatMenuModule,
-    MatSlideToggle,
     MatFormField,
     MatInput,
     HighlightPipe,
@@ -48,12 +47,12 @@ type DrawerMode = 'closed' | 'create' | 'edit';
   providers: [
     { provide: MatPaginatorIntl, useClass: MatPaginatorIntlEs }
   ],
-  templateUrl: './role-list.html',
+  templateUrl: './tenant-list.html',
 })
-export default class RoleList implements AfterViewInit {
+export default class TenantList implements AfterViewInit {
   private media = inject(Media);
   private router = inject(Router);
-  private rolesService = inject(RolesService);
+  private tenantsService = inject(TenantsService);
   private confirmationDialog = inject(DialogService);
 
   @ViewChild(MatDrawer) matDrawer!: MatDrawer;
@@ -64,25 +63,32 @@ export default class RoleList implements AfterViewInit {
   protected isMobile = computed(() =>
     this.media.match(`(max-width: 1023px)`)()
   );
-
+  
+  moduleUrl =  '/admin/management/tenants';
   drawerMode = signal<DrawerMode>('closed');
-  selectedRoleId = signal<string | null>(null);
+  selectedTenantId = signal<number | null>(null);
   isDrawerOpen = computed(() => this.drawerMode() !== 'closed');
 
-  displayedColumns: string[] = ['indicator', 'name', 'enabled', 'actions'];
+  displayedColumns: string[] = ['name', 'slug', 'actions'];
 
-  roles = this.rolesService.roles;
-  loading = this.rolesService.loading;
-  loadingList = this.rolesService.loadingList;
-  loadingToggle = this.rolesService.loadingToggle;
-  error = this.rolesService.error;
-  dataSource = this.rolesService.dataSource;
-  showOnlyEnabled = this.rolesService.showOnlyEnabled;
-  showDisabledRows = this.rolesService.showDisabledRows;
-  searchTerm = this.rolesService.searchTerm;
+  tenants = this.tenantsService.tenants;
+  loading = this.tenantsService.loading;
+  loadingList = this.tenantsService.loadingList;
+  error = this.tenantsService.error;
+  dataSource = this.tenantsService.dataSource;
+  searchTerm = this.tenantsService.searchTerm;
+
+  private searchSubject = new Subject<string>();
 
   constructor() {
-    this.rolesService.loadRoles();
+    this.tenantsService.loadTenants();
+
+    this.searchSubject.pipe(
+      debounceTime(300),
+      distinctUntilChanged()
+    ).subscribe(searchValue => {
+      this.tenantsService.applySearchFilter(searchValue);
+    });
   }
 
   ngAfterViewInit(): void {
@@ -92,51 +98,40 @@ export default class RoleList implements AfterViewInit {
 
   applyFilter(event: Event): void {
     const filterValue = (event.target as HTMLInputElement).value;
-    this.searchTerm.set(filterValue);
-    this.rolesService.applySearchFilter(filterValue);
+    this.searchSubject.next(filterValue);
   }
 
   clearSearch(): void {
-    this.searchTerm.set('');
-    this.rolesService.applySearchFilter('');
+    this.tenantsService.applySearchFilter('');
     if (this.searchInput) {
       this.searchInput.nativeElement.value = '';
     }
   }
 
-  toggleEnabledFilter(checked: boolean): void {
-    this.showOnlyEnabled.set(checked);
-    this.rolesService.applyEnabledFilter(checked);
-  }
-
   openCreateDrawer(): void {
     this.drawerMode.set('create');
-    this.selectedRoleId.set(null);
-    this.router.navigate(['/admin/management/roles/new']);
+    this.selectedTenantId.set(null);
+    this.router.navigate([`${this.moduleUrl}/new`]);
   }
 
-  openEditDrawer(roleId: string): void {
+  openEditDrawer(tenantId: number): void {
     this.drawerMode.set('edit');
-    this.selectedRoleId.set(roleId);
-    this.router.navigate(['/admin/management/roles/edit', roleId]);
+    this.selectedTenantId.set(tenantId);
+    this.router.navigate([`${this.moduleUrl}/edit`, tenantId]);
   }
 
   closeDrawer(): void {
     this.drawerMode.set('closed');
-    this.selectedRoleId.set(null);
-    this.router.navigate(['/admin/management/roles']);
+    this.selectedTenantId.set(null);
+    this.router.navigate([`${this.moduleUrl}`]);
   }
 
-  toggleEnabled(roleId: string, currentState: boolean): void {
-    this.rolesService.toggleEnabled(roleId, !currentState);
-  }
-
-  deleteRole(roleId: string): void {
+  deleteTenant(tenantId: number): void {
     this.confirmationDialog
       .confirmDeleteWithAction(
         '¿Estás seguro?',
-        'Esta acción eliminará este rol y no estará disponible para su uso.',
-        () => this.rolesService.deleteRole(roleId)
+        'Esta acción eliminará este tenant y no estará disponible para su uso.',
+        () => this.tenantsService.deleteTenant(tenantId)
       )
       .subscribe();
   }

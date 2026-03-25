@@ -9,6 +9,10 @@ const routes: Routes = [
     path: 'users',
     loadChildren: () => import('./features/users/routes'),
   },
+  {
+    path: 'tenants',
+    loadChildren: () => import('./features/tenants/routes'),
+  },
 ];
 
 export default routes;

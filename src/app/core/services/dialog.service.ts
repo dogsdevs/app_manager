@@ -2,12 +2,21 @@ import { inject, Injectable } from '@angular/core';
 import { MatDialog } from '@angular/material/dialog';
 import { Observable } from 'rxjs';
 import { ConfirmationDialogComponent, ConfirmationDialogData } from '../components/confirmation-dialog/confirmation-dialog.component';
+import { ErrorDialogComponent } from '../components/error-dialog/error-dialog.component';
 
 @Injectable({
   providedIn: 'root',
 })
-export class ConfirmationDialogService {
+export class DialogService {
   private dialog = inject(MatDialog);
+
+  errorAlert(message: string): void {
+    this.dialog.open(ErrorDialogComponent, {
+      data: { message },
+      width: '400px',
+      disableClose: true,
+    });
+  }
 
   confirm(data: ConfirmationDialogData): Observable<boolean> {
     const dialogRef = this.dialog.open(ConfirmationDialogComponent, {
@@ -50,9 +59,9 @@ export class ConfirmationDialogService {
         if (dialogRef.componentInstance.confirmed() && !actionExecuted) {
           actionExecuted = true;
           clearInterval(checkConfirmed);
-          
+
           dialogRef.componentInstance.loading.set(true);
-          
+
           action().subscribe({
             next: () => {
               dialogRef.close();
