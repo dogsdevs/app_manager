@@ -1,96 +1,67 @@
-import { effect, inject, Injectable, signal, computed } from '@angular/core';
+import { effect, inject, Injectable, signal } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { MatTableDataSource } from '@angular/material/table';
-import { catchError, of, tap } from 'rxjs';
-import { SnackbarService } from '@/app/core/services/snackbar.service';
+import { catchError, of, retry, tap } from 'rxjs';
+import { CatchErrorService } from '@/app/core/services/catch-error.service';
 import { DialogService } from '@/app/core/services/dialog.service';
+import { SnackbarService } from '@/app/core/services/snackbar.service';
 import { Role } from './role-model';
 import { RolesApiService } from './roles-api-service';
+
 
 @Injectable({ providedIn: 'root' })
 export class RolesService {
   private rolesApiService = inject(RolesApiService);
   private snackbarService = inject(SnackbarService);
   private dialogService = inject(DialogService);
+  private catchErrorService = inject(CatchErrorService);
 
   roles = signal<Role[]>([]);
   loading = signal<boolean>(false);
   loadingList = signal<boolean>(false);
-  loadingToggle = signal<string | null>(null);
   error = signal<string | null>(null);
-  showOnlyEnabled = signal<boolean>(true);
   searchTerm = signal<string>('');
   
-  showDisabledRows = computed(() => !this.showOnlyEnabled());
-
   dataSource = new MatTableDataSource<Role>([]);
 
   constructor() {
     effect(() => {
       this.dataSource.data = this.roles();
     });
-    effect(() => {
-      this.applyEnabledFilter(this.showOnlyEnabled());
-    });
-    this.setupFilterPredicate();
-  }
-
-  private setupFilterPredicate(): void {
-    this.dataSource.filterPredicate = (data: Role, filter: string) => {
-      const filterObj = JSON.parse(filter || '{}');
-      const matchesSearch = !filterObj.search || data.name.toLowerCase().includes(filterObj.search);
-      const matchesEnabled = !filterObj.onlyEnabled || data.enabled;
-      return matchesSearch && matchesEnabled;
-    };
   }
 
   applySearchFilter(searchValue: string): void {
-    const currentFilter = this.getCurrentFilter();
-    currentFilter.search = searchValue.trim().toLowerCase();
-    this.dataSource.filter = JSON.stringify(currentFilter);
-  }
-
-  applyEnabledFilter(onlyEnabled: boolean): void {
-    const currentFilter = this.getCurrentFilter();
-    currentFilter.onlyEnabled = onlyEnabled;
-    this.dataSource.filter = JSON.stringify(currentFilter);
-  }
-
-  private getCurrentFilter(): { search?: string; onlyEnabled?: boolean } {
-    try {
-      return JSON.parse(this.dataSource.filter || '{}');
-    } catch {
-      return {};
-    }
+    this.searchTerm.set(searchValue.trim());
+    this.loadRoles();
   }
 
   loadRoles(): void {
     this.loadingList.set(true);
     this.error.set(null);
-
     this.rolesApiService
-      .getAll()
+      .getAll(this.searchTerm())
       .pipe(
+        retry({ count: 2, delay: 1000 }),
         tap((roles) => {
           this.roles.set(roles);
           this.loadingList.set(false);
         }),
         catchError((error) => {
-          this.error.set('Error al cargar los roles');
+          const errorMessage = this.catchErrorService.getMessage(error, 'Error al cargar los roles');
+          this.error.set(errorMessage);
           this.loadingList.set(false);
-          console.error('Error loading roles:', error);
           return of([]);
         })
       )
       .subscribe();
   }
 
-  getRoleById(id: string) {
+  getRoleById(id: number) {
     return toSignal(
       this.rolesApiService.getById(id).pipe(
         catchError((error) => {
-          this.error.set('Error al cargar el rol');
-          console.error('Error loading role:', error);
+          const errorMessage = this.catchErrorService.getMessage(error, 'Error al cargar el rol');
+          this.error.set(errorMessage);
           return of(null);
         })
       )
@@ -110,16 +81,16 @@ export class RolesService {
           this.snackbarService.success('Rol creado exitosamente');
         }),
         catchError((error) => {
-          this.error.set('Error al crear el rol');
+         const errorMessage = this.catchErrorService.getMessage(error, 'Error al crear el rol');
+          this.error.set(errorMessage);
           this.loading.set(false);
-          this.dialogService.errorAlert('Error al crear el rol');
-          console.error('Error creating role:', error);
+          this.dialogService.errorAlert(errorMessage);
           return of(null);
         })
       );
   }
 
-  updateRole(id: string, role: Partial<Role>) {
+  updateRole(id: number, role: Partial<Role>) {
     this.loading.set(true);
     this.error.set(null);
 
@@ -131,19 +102,19 @@ export class RolesService {
             roles.map((r) => (r.id === id ? updatedRole : r))
           );
           this.loading.set(false);
-          this.snackbarService.success('Rol actualizado exitosamente');
+          this.snackbarService.success('Rol actualizado');
         }),
         catchError((error) => {
-          this.error.set('Error al actualizar el rol');
+           const errorMessage = this.catchErrorService.getMessage(error, 'Error al actualizar el rol');
+          this.error.set(errorMessage);
           this.loading.set(false);
-          this.dialogService.errorAlert('Error al actualizar el rol');
-          console.error('Error updating role:', error);
+          this.dialogService.errorAlert(errorMessage);
           return of(null);
         })
       );
   }
 
-  deleteRole(id: string) {
+  deleteRole(id: number) {
     this.loading.set(true);
     this.error.set(null);
 
@@ -153,40 +124,15 @@ export class RolesService {
         tap(() => {
           this.roles.update((roles) => roles.filter((r) => r.id !== id));
           this.loading.set(false);
-          this.snackbarService.success('Rol eliminado exitosamente');
+          this.snackbarService.success('Tenant eliminado');
         }),
         catchError((error) => {
-          this.error.set('Error al eliminar el rol');
+          const errorMessage = this.catchErrorService.getMessage(error, 'Error al eliminar el tenant');
+          this.error.set(errorMessage);
           this.loading.set(false);
-          this.dialogService.errorAlert('Error al eliminar el rol');
-          console.error('Error deleting role:', error);
+          this.dialogService.errorAlert(errorMessage);
           return of(null);
         })
       );
-  }
-
-  toggleEnabled(id: string, enabled: boolean): void {
-    this.loadingToggle.set(id);
-    
-    this.rolesApiService
-      .toggleEnabled(id, enabled)
-      .pipe(
-        tap((updatedRole) => {
-          this.roles.update((roles) =>
-            roles.map((r) => (r.id === id ? updatedRole : r))
-          );
-          this.loadingToggle.set(null);
-          const message = enabled ? 'Rol habilitado exitosamente' : 'Rol deshabilitado exitosamente';
-          this.snackbarService.success(message);
-        }),
-        catchError((error) => {
-          this.error.set('Error al cambiar el estado del rol');
-          this.loadingToggle.set(null);
-          this.dialogService.errorAlert('Error al cambiar el estado del rol');
-          console.error('Error toggling role enabled:', error);
-          return of(null);
-        })
-      )
-      .subscribe();
   }
 }

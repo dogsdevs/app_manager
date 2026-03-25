@@ -1,5 +1,7 @@
 export type Role = {
-  id: string;
+  id: number;
   name: string;
-  enabled: boolean;
+  description: string;
+  guardName: string;
+  tenantId: number;
 }

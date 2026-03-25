@@ -18,16 +18,16 @@
       <div class="flex items-center">
         <button
           matButton="outlined"
-          [matTooltip]="'Cancel'"
+          [matTooltip]="'Cerrar formulario'"
           (click)="closeDrawer()"
         >
-          Cancel
+          Cerrar
         </button>
         <button
           class="ml-2"
           matButton="filled"
-          [matTooltip]="'Save'"
-          [disabled]="roleForm.invalid || loading()"
+          [matTooltip]="'Guardar rol'"
+          [disabled]="isSaveDisabled"
           (click)="save()"
         >
           @if (loading()) {
@@ -41,33 +41,37 @@
     </div>
     <mat-divider class="mb-8 mt-1"></mat-divider>
 
-    <!-- Name -->
+   
     <div>
-      <mat-form-field
-        class="w-full"
-        [subscriptSizing]="'dynamic'"
-      >
+
+      <!-- Name -->
+      <mat-form-field class="w-full" [subscriptSizing]="'fixed'">
         <mat-label>Nombre</mat-label>
-        <input
-          matInput
-          [disabled]="loading()"
-          [formControlName]="'name'"
-          [spellcheck]="false"
-          cdkTextareaAutosize
-          #nameField
-        />
+        <input matInput [formControlName]="'name'" [spellcheck]="false" cdkTextareaAutosize
+          #nameField />
+        @if (roleForm.get('name')?.hasError('required') && roleForm.get('name')?.touched) {
+        <mat-error>El nombre es requerido</mat-error>
+        }
       </mat-form-field>
 
-      <div class="mt-8">
-        <mat-slide-toggle
-            [disabled]="loading()"
-            class="mt-8 sm:mt-0 sm:ml-auto [&_.mdc-label]:ml-2"
-            [formControlName]="'enabled'"
-            hideIcon
-        >
-            Habilitado
-        </mat-slide-toggle>
-      </div>
+      <!-- Description -->
+      <mat-form-field class="w-full" [subscriptSizing]="'fixed'">
+        <mat-label>Descripción</mat-label>
+        <textarea matInput [formControlName]="'description'" [spellcheck]="false" cdkTextareaAutosize rows="3"></textarea>
+        @if (roleForm.get('description')?.hasError('required') && roleForm.get('description')?.touched) {
+        <mat-error>La descripción es requerida</mat-error>
+        }
+      </mat-form-field>
+
+      <!-- guardName -->
+      <mat-form-field class="w-full" [subscriptSizing]="'fixed'">
+        <mat-label>Route Guard</mat-label>
+        <input matInput [formControlName]="'guardName'" [spellcheck]="false" cdkTextareaAutosize />
+        @if (roleForm.get('guardName')?.hasError('required') && roleForm.get('guardName')?.touched) {
+        <mat-error>El Guard name es requerido</mat-error>
+        }
+      </mat-form-field>
+      
     </div>
   </form>
 </div>
