@@ -13,6 +13,8 @@ import { MatSort, MatSortModule } from '@angular/material/sort';
 import { MatTableModule } from '@angular/material/table';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { Router, RouterOutlet } from '@angular/router';
+import { Subject } from 'rxjs';
+import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
 import { EmptyStateComponent } from '@/app/core/components/empty-state/empty-state.component';
 import { TableSkeletonComponent } from '@/app/core/components/table-skeleton/table-skeleton.component';
 import { MatPaginatorIntlEs } from '@/app/core/i18n/mat-paginator-intl-es';
@@ -20,8 +22,6 @@ import { Media } from '@/app/core/media';
 import { HighlightPipe } from '@/app/core/pipes/highlight.pipe';
 import { DialogService } from '@/app/core/services/dialog.service';
 import { TenantsService } from '../../data/tenants-service';
-import { Subject } from 'rxjs';
-import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
 
 type DrawerMode = 'closed' | 'create' | 'edit';
 
@@ -63,7 +63,8 @@ export default class TenantList implements AfterViewInit {
   protected isMobile = computed(() =>
     this.media.match(`(max-width: 1023px)`)()
   );
-
+  
+  moduleUrl =  '/admin/management/tenants';
   drawerMode = signal<DrawerMode>('closed');
   selectedTenantId = signal<number | null>(null);
   isDrawerOpen = computed(() => this.drawerMode() !== 'closed');
@@ -110,19 +111,19 @@ export default class TenantList implements AfterViewInit {
   openCreateDrawer(): void {
     this.drawerMode.set('create');
     this.selectedTenantId.set(null);
-    this.router.navigate(['/admin/management/tenants/new']);
+    this.router.navigate([`${this.moduleUrl}/new`]);
   }
 
   openEditDrawer(tenantId: number): void {
     this.drawerMode.set('edit');
     this.selectedTenantId.set(tenantId);
-    this.router.navigate(['/admin/management/tenants/edit', tenantId]);
+    this.router.navigate([`${this.moduleUrl}/edit`, tenantId]);
   }
 
   closeDrawer(): void {
     this.drawerMode.set('closed');
     this.selectedTenantId.set(null);
-    this.router.navigate(['/admin/management/tenants']);
+    this.router.navigate([`${this.moduleUrl}`]);
   }
 
   deleteTenant(tenantId: number): void {

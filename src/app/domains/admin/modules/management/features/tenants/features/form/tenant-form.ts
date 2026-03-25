@@ -12,9 +12,9 @@ import { MatMenuModule } from '@angular/material/menu';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { ActivatedRoute } from '@angular/router';
+import { FormChangesDetectorService } from '@/app/core/services/form-changes-detector.service';
 import { TenantsService } from '../../data/tenants-service';
 import TenantList from '../list/tenant-list';
-import { FormChangesDetectorService } from '@/app/core/services/form-changes-detector.service';
 
 @Component({
   selector: 'management-tenant-form',

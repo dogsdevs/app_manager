@@ -1,10 +1,10 @@
-import { effect, inject, Injectable, signal, computed } from '@angular/core';
+import { effect, inject, Injectable, signal } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { MatTableDataSource } from '@angular/material/table';
 import { catchError, of, tap, retry } from 'rxjs';
-import { SnackbarService } from '@/app/core/services/snackbar.service';
-import { DialogService } from '@/app/core/services/dialog.service';
 import { CatchErrorService } from '@/app/core/services/catch-error.service';
+import { DialogService } from '@/app/core/services/dialog.service';
+import { SnackbarService } from '@/app/core/services/snackbar.service';
 import { Tenant } from './tenant-model';
 import { TenantsApiService } from './tenants-api-service';
 
@@ -64,7 +64,7 @@ export class TenantsService {
           this.error.set(errorMessage);
           return of(null);
         })
-      )
+      ),
     );
   }
 
