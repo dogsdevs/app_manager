@@ -1,61 +1,42 @@
-import { Injectable } from '@angular/core';
-import { delay, Observable, of, throwError } from 'rxjs';
+import { HttpClient, HttpParams } from '@angular/common/http';
+import { Injectable, inject } from '@angular/core';
+import { forkJoin, map, Observable, timer } from 'rxjs';
+import { environment } from '../../../../../../../../environments/environment';
 import { Role } from './role-model';
 
 @Injectable({ providedIn: 'root' })
 export class RolesApiService {
-  private mockRoles: Role[] = [
-    { id: '1', name: 'Administrador', enabled: true },
-    { id: '3', name: 'Editor', enabled: false },
-  ];
 
-  private nextId = 5;
+    private http = inject(HttpClient);
+    private apiUrl = `${environment.apiUrl}/roles`;
+  
 
-  getAll(): Observable<Role[]> {
-    return of([...this.mockRoles]).pipe(delay(500));
+  getAll(q?: string): Observable<Role[]> {
+    let params = new HttpParams();
+    if (q) {
+      params = params.set('q', q);
+    }
+     const request$ = this.http.get<Role[]>(this.apiUrl, { params });
+    
+    return forkJoin([request$, timer(350)]).pipe(
+      map(([response]) => response)
+    );
   }
 
-  getById(id: string): Observable<Role> {
-    const role = this.mockRoles.find((r) => r.id === id);
-    if (!role) {
-      return throwError(() => new Error('Rol no encontrado'));
-    }
-    return of({ ...role }).pipe(delay(300));
+  getById(id: number): Observable<Role> {
+    return this.http.get<Role>(`${this.apiUrl}/${id}`);
   }
 
   create(role: Omit<Role, 'id'>): Observable<Role> {
-    const newRole: Role = {
-      ...role,
-      id: String(this.nextId++),
-    };
-    this.mockRoles.push(newRole);
-    return of({ ...newRole }).pipe(delay(500));
+    return this.http.post<Role>(this.apiUrl, role);
   }
 
-  update(id: string, role: Partial<Role>): Observable<Role> {
-    const index = this.mockRoles.findIndex((r) => r.id === id);
-    if (index === -1) {
-      return throwError(() => new Error('Rol no encontrado'));
-    }
-    this.mockRoles[index] = { ...this.mockRoles[index], ...role };
-    return of({ ...this.mockRoles[index] }).pipe(delay(500));
+  update(id: number, role: Partial<Role>): Observable<Role> {
+    return this.http.put<Role>(`${this.apiUrl}/${id}`, role);
   }
 
-  delete(id: string): Observable<void> {
-    const index = this.mockRoles.findIndex((r) => r.id === id);
-    if (index === -1) {
-      return throwError(() => new Error('Rol no encontrado'));
-    }
-    this.mockRoles.splice(index, 1);
-    return of(void 0).pipe(delay(500));
+  delete(id: number): Observable<void> {
+    return this.http.delete<void>(`${this.apiUrl}/${id}`);
   }
 
-  toggleEnabled(id: string, enabled: boolean): Observable<Role> {
-    const index = this.mockRoles.findIndex((r) => r.id === id);
-    if (index === -1) {
-      return throwError(() => new Error('Rol no encontrado'));
-    }
-    this.mockRoles[index].enabled = enabled;
-    return of({ ...this.mockRoles[index] }).pipe(delay(300));
-  }
 }

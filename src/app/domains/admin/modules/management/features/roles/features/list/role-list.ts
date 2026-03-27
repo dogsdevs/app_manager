@@ -9,7 +9,6 @@ import { MatPaginator, MatPaginatorIntl } from '@angular/material/paginator';
 import { MatPaginatorModule } from '@angular/material/paginator';
 import { MatDrawer } from '@angular/material/sidenav';
 import { MatSidenavModule } from '@angular/material/sidenav';
-import { MatSlideToggle } from '@angular/material/slide-toggle';
 import { MatSort, MatSortModule } from '@angular/material/sort';
 import { MatTableModule } from '@angular/material/table';
 import { MatTooltipModule } from '@angular/material/tooltip';
@@ -37,7 +36,6 @@ type DrawerMode = 'closed' | 'create' | 'edit';
     MatSortModule,
     MatIconButton,
     MatMenuModule,
-    MatSlideToggle,
     MatFormField,
     MatInput,
     HighlightPipe,
@@ -64,21 +62,19 @@ export default class RoleList implements AfterViewInit {
   protected isMobile = computed(() =>
     this.media.match(`(max-width: 1023px)`)()
   );
-
+  
+  moduleUrl =  '/admin/management/roles';
   drawerMode = signal<DrawerMode>('closed');
   selectedRoleId = signal<string | null>(null);
   isDrawerOpen = computed(() => this.drawerMode() !== 'closed');
 
-  displayedColumns: string[] = ['indicator', 'name', 'enabled', 'actions'];
+  displayedColumns: string[] = ['name', 'description', 'guardName','tenantId', 'actions'];
 
   roles = this.rolesService.roles;
   loading = this.rolesService.loading;
   loadingList = this.rolesService.loadingList;
-  loadingToggle = this.rolesService.loadingToggle;
   error = this.rolesService.error;
   dataSource = this.rolesService.dataSource;
-  showOnlyEnabled = this.rolesService.showOnlyEnabled;
-  showDisabledRows = this.rolesService.showDisabledRows;
   searchTerm = this.rolesService.searchTerm;
 
   constructor() {
@@ -104,21 +100,16 @@ export default class RoleList implements AfterViewInit {
     }
   }
 
-  toggleEnabledFilter(checked: boolean): void {
-    this.showOnlyEnabled.set(checked);
-    this.rolesService.applyEnabledFilter(checked);
-  }
-
   openCreateDrawer(): void {
     this.drawerMode.set('create');
     this.selectedRoleId.set(null);
-    this.router.navigate(['/admin/management/roles/new']);
+    this.router.navigate([`${this.moduleUrl}/new`]);
   }
 
   openEditDrawer(roleId: string): void {
     this.drawerMode.set('edit');
     this.selectedRoleId.set(roleId);
-    this.router.navigate(['/admin/management/roles/edit', roleId]);
+    this.router.navigate([`${this.moduleUrl}/edit`, roleId]);
   }
 
   closeDrawer(): void {
@@ -127,11 +118,8 @@ export default class RoleList implements AfterViewInit {
     this.router.navigate(['/admin/management/roles']);
   }
 
-  toggleEnabled(roleId: string, currentState: boolean): void {
-    this.rolesService.toggleEnabled(roleId, !currentState);
-  }
 
-  deleteRole(roleId: string): void {
+  deleteRole(roleId: number): void {
     this.confirmationDialog
       .confirmDeleteWithAction(
         '¿Estás seguro?',
