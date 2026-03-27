@@ -1,25 +1,155 @@
 <div class="@container mx-auto flex w-full flex-auto flex-col overflow-hidden">
-  <div class="flex flex-auto flex-col">
-    <!-- Header -->
-    <div class="flex items-center gap-x-4 px-6 py-4 lg:px-10 lg:py-8">
-      <div class="flex flex-col gap-y-0.5">
-        <div class="text-xl font-semibold tracking-tighter sm:text-2xl">
-          Users
+  <mat-sidenav-container class="h-full flex-auto [&_.mat-drawer-backdrop]:fixed" (backdropClick)="closeDrawer()">
+    <!-- Drawer -->
+    <mat-sidenav class="w-full bg-white sm:w-lg dark:bg-neutral-900" [mode]="isMobile() ? 'over' : 'side'"
+      [opened]="isDrawerOpen()" [position]="'end'" [fixedInViewport]="isMobile()" disableClose>
+      <router-outlet></router-outlet>
+    </mat-sidenav>
+
+    <mat-sidenav-content class="flex flex-auto flex-col" [class.border-r]="isDrawerOpen()">
+      <!-- Header -->
+      <div class="flex items-center gap-x-4 px-6 py-4 lg:px-10 lg:py-8">
+        <div class="flex flex-col gap-y-0.5">
+          <div class="text-xl font-semibold tracking-tighter sm:text-2xl">
+            Usuarios
+          </div>
+          <div class="text-neutral-500">Puedes administrar los usuarios aquí</div>
         </div>
-        <div class="text-neutral-500">You can manage users here</div>
+
+        <!-- Spacer -->
+        <div class="flex-auto"></div>
+
+        <!-- Actions -->
+        <button matButton="filled">
+          <mat-icon svgIcon="plus" />
+          Nuevo
+        </button>
       </div>
 
-      <!-- Spacer -->
-      <div class="flex-auto"></div>
+      <div class="mb-4 flex w-full flex-col items-center gap-4 px-6 sm:flex-row lg:px-10">
+        <!-- Left side: Search and Toggle -->
+        <div class="flex w-full flex-col items-center gap-4 sm:flex-row sm:flex-auto">
+          <mat-form-field class="w-full sm:min-w-96 sm:max-w-2xl">
+            <mat-icon matPrefix svgIcon="search" />
+            <input placeholder="Buscar usuarios por nombre..." matInput (keyup)="applyFilter($event)" #input />
+          </mat-form-field>
+          <mat-slide-toggle class="[&_.mdc-label]:ml-2" [checked]="showDisabledRows()"
+            (change)="toggleIsActiveFilter($event.checked)" hideIcon>
+            Ver Inactivos
+          </mat-slide-toggle>
+        </div>
 
-      <!-- Actions -->
-      <button matButton="filled">
-        <mat-icon svgIcon="plus" />
-        Add
-      </button>
-    </div>
+        <!-- Right side: Pagination -->
+        <mat-paginator [pageSizeOptions]="[10,50,100]" showFirstLastButtons
+          class="w-155 shrink-0 bg-white dark:bg-neutral-900 [&_.mat-mdc-paginator-range-label]:inline-block [&_.mat-mdc-paginator-range-label]:w-20 [&_.mat-mdc-paginator-range-label]:text-center">
+        </mat-paginator>
+      </div>
 
-    <!-- content -->
-    <div class="relative"></div>
-  </div>
-</div>
+
+      <!-- Table Structure -->
+      <div class="overflow-auto px-6 lg:px-10">
+        @if (!loadingList() && dataSource.filteredData.length === 0) {
+        <!-- Empty State -->
+        <app-empty-state icon="clipboard-list" title="No hay usuarios" description="Comienza creando un nuevo usuario"
+          actionText="Crear usuario" actionIcon="plus" [searchTerm]="searchTerm()" [showAction]="users().length === 0"
+          (action)="openCreateDrawer()" (clearSearch)="clearSearch()" />
+        } @else {
+        <!-- Table with data -->
+        <table mat-table [dataSource]="dataSource" matSort class="w-full">
+
+          <!-- Indicator Column -->
+          <ng-container matColumnDef="indicator">
+            <th mat-header-cell *matHeaderCellDef class="w-2"></th>
+            <td mat-cell *matCellDef="let user" class="px-0!">
+              <div class="flex items-center justify-center h-full">
+                <div class="h-8 w-1 rounded-full" [class.bg-primary-600/40]="user.isActive"
+                  [class.bg-neutral-400/40]="!user.isActive">
+                </div>
+              </div>
+            </td>
+          </ng-container>
+
+          <!-- identityKey Column -->
+          <ng-container matColumnDef="identityKey">
+            <th mat-header-cell *matHeaderCellDef mat-sort-header>Nombre</th>
+            <td mat-cell *matCellDef="let user">
+              <div class="flex items-center gap-2">
+                <span [innerHTML]="user.identityKey | highlight : searchTerm()"></span>
+                @if (!user.isActive) {
+                <span
+                  class="rounded-full bg-neutral-200 px-2 py-0.5 text-xs font-medium text-neutral-700 dark:bg-neutral-700 dark:text-neutral-300">
+                  Inactivo
+                </span>
+                }
+              </div>
+            </td>
+          </ng-container>
+
+
+          <!-- Email Column -->
+          <ng-container matColumnDef="email">
+            <th mat-header-cell *matHeaderCellDef class="w-32">Correo</th>
+            <td mat-cell *matCellDef="let user">
+              <span [innerHTML]="user.email | highlight : searchTerm()"></span>
+            </td>
+          </ng-container>
+
+
+          <!-- isActive Column -->
+          <ng-container matColumnDef="isActive">
+            <th mat-header-cell *matHeaderCellDef mat-sort-header class="w-32">Activo</th>
+            <td mat-cell *matCellDef="let user">
+              <div class="flex items-center justify-center w-10 h-10">
+                <button matIconButton class="leading-none" [disabled]="loadingToggle() === user.id"
+                  (click)="$event.stopPropagation(); toggleIsActive(user)">
+                  @if (loadingToggle() === user.id) {
+                  <mat-icon class="animate-spin" svgIcon="loader-circle" />
+                  } @else {
+                  @if (user.isActive) {
+                  <mat-icon class="text-green-600" svgIcon="circle-check" />
+                  }
+                  @if (!user.isActive) {
+                  <mat-icon class="text-neutral-500" svgIcon="circle" />
+                  }
+                  }
+                </button>
+              </div>
+            </td>
+          </ng-container>
+
+          <!-- Actions Column -->
+          <ng-container matColumnDef="actions">
+            <th mat-header-cell *matHeaderCellDef class="w-32">Acciones</th>
+            <td mat-cell *matCellDef="let user">
+              <button mat-icon-button [matMenuTriggerFor]="menu" (click)="$event.stopPropagation()">
+                <mat-icon svgIcon="ellipsis" />
+              </button>
+              <mat-menu #menu="matMenu">
+                <button mat-menu-item (click)="openEditDrawer(user.id)">
+                  <mat-icon svgIcon="pencil" />
+                  <span>Editar</span>
+                </button>
+                <button mat-menu-item (click)="deleteUser(user.id)" class="text-red-600 [&_mat-icon]:text-red-600">
+                  <mat-icon svgIcon="trash-2" />
+                  <span>Eliminar</span>
+                </button>
+              </mat-menu>
+            </td>
+          </ng-container>
+
+          <tr mat-header-row *matHeaderRowDef="displayedColumns"
+            class="border-t [&>th]:text-neutral-500 [&>th]:font-medium"></tr>
+          <tr mat-row *matRowDef="let row; columns: displayedColumns" [class.hidden]="loadingList()"
+            class="cursor-pointer hover:bg-neutral-50 dark:hover:bg-neutral-800" [class.opacity-50]="!row.isActive"
+            (click)="openEditDrawer(row.id)">
+          </tr>
+        </table>
+        @if (loadingList()) {
+        <!-- Loading State rendered under table header -->
+        <app-table-skeleton [rows]="2" />
+        }
+        }
+      </div>
+
+    </mat-sidenav-content>
+  </mat-sidenav-container>
