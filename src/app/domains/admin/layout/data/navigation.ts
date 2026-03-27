@@ -42,10 +42,10 @@ export const NAVIGATION: NavigationItem[] = [
         route: '/admin/management/roles',
       },
       {
-        id: 'management/users',
-        label: 'Usuarios',
-        icon: 'users',
-        route: '/admin/management/users',
+        id: 'management/features',
+        label: 'Features',
+        icon: 'puzzle',
+        route: '/admin/management/features'
       },
     ],
   },
