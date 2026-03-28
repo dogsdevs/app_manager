@@ -1,5 +1,5 @@
 import { MatPaginatorIntlEs } from '@/app/core/i18n/mat-paginator-intl-es';
-import { Component, computed, ElementRef, inject, signal, ViewChild } from '@angular/core';
+import { AfterViewInit, Component, computed, ElementRef, inject, signal, ViewChild } from '@angular/core';
 import { MatButton, MatIconButton } from '@angular/material/button';
 import { MatFormField } from '@angular/material/form-field';
 import { MatIcon } from '@angular/material/icon';
@@ -13,20 +13,21 @@ import { EmptyStateComponent } from '@/app/core/components/empty-state/empty-sta
 import { MatDrawer, MatSidenavModule } from '@angular/material/sidenav';
 import { MatSort, MatSortModule } from '@angular/material/sort';
 import { MatMenu, MatMenuModule } from "@angular/material/menu";
-import { RouterOutlet } from "@angular/router";
+import { Router, RouterOutlet } from "@angular/router";
 import { TableSkeletonComponent } from "@/app/core/components/table-skeleton/table-skeleton.component";
 import { Media } from '@/app/core/media';
-import { debounceTime, distinctUntilChanged, Subject } from 'rxjs';
+import { debounceTime, distinctUntilChanged, of, Subject } from 'rxjs';
 import { User } from '../../data/user-model';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatSlideToggle } from '@angular/material/slide-toggle';
+import { DialogService } from '@/app/core/services/dialog.service';
 
 type DrawerMode = 'closed' | 'create' | 'edit';
 
 @Component({
   selector: 'management-user-list',
   imports: [
-      MatIcon,
+    MatIcon,
     MatButton,
     RouterOutlet,
     MatSidenavModule,
@@ -49,9 +50,11 @@ type DrawerMode = 'closed' | 'create' | 'edit';
   ],
   templateUrl: './user-list.html',
 })
-export default class UserList {
+export default class UserList  implements AfterViewInit {
   private usersService = inject(UsersService);
   private media = inject(Media);
+  private router = inject(Router);
+  private confirmationDialog = inject(DialogService);
 
 
   @ViewChild(MatDrawer) matDrawer!: MatDrawer;
@@ -63,9 +66,11 @@ export default class UserList {
     this.media.match(`(max-width: 1023px)`)()
   );
 
-
+  moduleUrl =  '/admin/management/users';
   drawerMode = signal<DrawerMode>('closed');
+  selectedUserId = signal<number | null>(null);
   isDrawerOpen = computed(() => this.drawerMode() !== 'closed');
+
   displayedColumns: string[] = ['indicator', 'identityKey', 'email', 'isActive', 'actions'];
 
   users = this.usersService.users;
@@ -79,7 +84,7 @@ export default class UserList {
 
 
   private searchSubject = new Subject<string>();
-  
+
 
   constructor() {
     this.usersService.loadUsers();
@@ -92,7 +97,6 @@ export default class UserList {
     });
 
   }
-
 
   toggleIsActive(user: User): void {
     this.usersService.toggleIsActive(user);
@@ -122,21 +126,34 @@ export default class UserList {
   }
 
 
-
   openCreateDrawer(): void {
+    this.drawerMode.set('create');
+    this.selectedUserId.set(null);
+    this.router.navigate([`${this.moduleUrl}/new`]);
 
   }
 
   openEditDrawer(userId: number): void {
+    this.drawerMode.set('edit');
+    this.selectedUserId.set(userId);
+   this.router.navigate([`${this.moduleUrl}/edit`, userId]);
 
   }
 
   closeDrawer(): void {
-
+    this.drawerMode.set('closed');
+    this.selectedUserId.set(null);
+      this.router.navigate(['/admin/management/users']);
   }
 
   deleteUser(userId: number): void {
-
+    this.confirmationDialog
+      .confirmDeleteWithAction(
+        '¿Estás seguro?',
+        'Esta acción eliminará este usuario y no estará disponible para su uso.',
+        () => this.usersService.deleteUser(userId)
+      )
+      .subscribe();
   }
 
 }

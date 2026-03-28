@@ -2,10 +2,11 @@ import { computed, effect, inject, Injectable, signal } from '@angular/core';
 import { User } from './user-model';
 import { UsersApiService } from './users-api-service';
 import { MatTableDataSource } from '@angular/material/table';
-import { catchError, of, retry, tap } from 'rxjs';
+import { catchError, map, of, retry, tap } from 'rxjs';
 import { CatchErrorService } from '@/app/core/services/catch-error.service';
 import { SnackbarService } from '@/app/core/services/snackbar.service';
 import { DialogService } from '@/app/core/services/dialog.service';
+import { toSignal } from '@angular/core/rxjs-interop';
 
 @Injectable({
   providedIn: 'root'
@@ -108,6 +109,83 @@ export class UsersService {
         })
       )
       .subscribe();
+  }
+
+
+  getUserById(userId: number) {
+    return toSignal(
+      this.usersApiService.getById(userId).pipe(
+        catchError((error) => {
+          const errorMessage = this.catchErrorService.getMessage(error, 'Error al cargar el usuario');
+          this.error.set(errorMessage);
+          return of(null);
+        })
+      ),
+    );
+  }
+
+  createUser(user: Omit<User, 'id'>) {
+    this.loading.set(true);
+    this.error.set(null);
+
+    return this.usersApiService
+      .create(user)
+      .pipe(
+        tap((newUser) => {
+          this.users.update((users) => [...users, newUser]);
+          this.loading.set(false);
+          this.snackbarService.success('Usuario creado');
+        }),
+        catchError((error) => {
+          const errorMessage = this.catchErrorService.getMessage(error, 'Error al crear el usuario');
+          this.error.set(errorMessage);
+          this.loading.set(false);
+          return of(null);
+        })
+      );
+  }
+
+  updateUser(userId: number, user: Partial<User>) {
+    this.loading.set(true);
+    this.error.set(null);
+
+    return this.usersApiService
+      .update(userId, user)
+      .pipe(
+        tap((updatedUser) =>
+          this.users.update((users) =>
+            users.map((u) => (u.id === userId ? updatedUser : u)))
+        ),
+        catchError((error) => {
+          const errorMessage = this.catchErrorService.getMessage(error, 'Error al actualizar el usuario');
+          this.error.set(errorMessage);
+          this.loading.set(false);
+          return of(null);
+        })
+      );
+
+  }
+
+  deleteUser(userId: number) {
+    this.loading.set(true);
+    this.error.set(null);
+
+    return this.usersApiService
+      .delete(userId)
+      .pipe(
+        tap(() => {
+          this.users.update((users) => users.filter((u) => u.id !== userId));
+          this.loading.set(false);
+          this.snackbarService.success('Usuario eliminado');
+        }),
+        catchError((error) => {
+          const errorMessage = this.catchErrorService.getMessage(error, 'Error al eliminar el usuario');
+          this.error.set(errorMessage);
+          this.loading.set(false);
+          this.dialogService.errorAlert(errorMessage);
+          return of(null);
+        })
+      );
   }
 
 }

@@ -1,0 +1,61 @@
+<div class="flex flex-auto">
+  <form class="flex flex-auto flex-col overflow-y-auto p-6 pt-2 sm:p-4 sm:pt-4" [formGroup]="userForm">
+    <div class="lg:px-md-4 flex items-center gap-x-6 py-4 lg:py-4">
+      <div class="flex flex-col gap-y-0.5">
+        <div class="text-xl font-semibold tracking-tighter sm:text-2xl">
+          {{ formTitle() }}
+        </div>
+        <div class="text-neutral-500">{{ formDescription() }}</div>
+      </div>
+
+      <!-- Spacer -->
+      <div class="flex-auto"></div>
+
+      <!-- Actions -->
+      <div class="flex items-center">
+        <button matButton="outlined" [matTooltip]="'Cerrar formulario'" (click)="closeDrawer()">
+          Cerrar
+        </button>
+        <button class="ml-2" matButton="filled" [matTooltip]="'Guardar rol'" [disabled]="isSaveDisabled"
+          (click)="save()">
+          @if (loading()) {
+          <mat-icon class="animate-spin" svgIcon="loader-circle" />
+          } @else {
+          <mat-icon svgIcon="save" />
+          }
+          Guardar
+        </button>
+      </div>
+    </div>
+    <mat-divider class="mb-8 mt-1"></mat-divider>
+
+
+    <div>
+      <!-- identityKey -->
+      <mat-form-field class="w-full" [subscriptSizing]="'fixed'">
+        <mat-label>Nombre</mat-label>
+        <input matInput [formControlName]="'identityKey'" [spellcheck]="false" cdkTextareaAutosize #nameField />
+        @if (userForm.get('identityKey')?.hasError('required') && userForm.get('identityKey')?.touched) {
+        <mat-error>El nombre es requerido</mat-error>
+        }
+      </mat-form-field>
+
+      <!-- email -->
+      <mat-form-field class="w-full" [subscriptSizing]="'fixed'">
+        <mat-label>Correo electrónico</mat-label>
+        <input matInput [formControlName]="'email'" [spellcheck]="false" cdkTextareaAutosize />
+        @if (userForm.get('email')?.hasError('required') && userForm.get('email')?.touched) {
+        <mat-error>El correo es requerido</mat-error>
+        }
+      </mat-form-field>
+
+      <!-- isActive 
+
+        <mat-slide-toggle class="[&_.mdc-label]:ml-2"  formControlName="isActive">
+            Activo
+          </mat-slide-toggle>
+        -->
+
+    </div>
+  </form>
+</div>

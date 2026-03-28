@@ -20,7 +20,7 @@
         <div class="flex-auto"></div>
 
         <!-- Actions -->
-        <button matButton="filled">
+        <button matButton="filled" [disabled]="isDrawerOpen()" (click)="openCreateDrawer()">
           <mat-icon svgIcon="plus" />
           Nuevo
         </button>

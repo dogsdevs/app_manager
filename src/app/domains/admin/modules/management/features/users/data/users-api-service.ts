@@ -5,12 +5,13 @@ import { User } from './user-model';
 import { forkJoin, map, Observable, timer } from 'rxjs';
 
 
-@Injectable({
-  providedIn: 'root'
-})
+@Injectable({ providedIn: 'root' })
+
 export class UsersApiService {
+
   private http = inject(HttpClient);
   private apiUrl = `${environment.apiUrl}/users`;
+
 
   getAll(q?: string, showDisabledRows?: boolean): Observable<User[]> {
     let params = new HttpParams();
@@ -38,6 +39,23 @@ export class UsersApiService {
     return forkJoin([request$, timer(350)]).pipe(
       map(([response]) => response)
     );
+  }
+
+  getById(userId: number): Observable<User> {
+    return this.http.get<User>(`${this.apiUrl}/${userId}`);
+  }
+
+  create(user: Omit<User, 'id'>): Observable<User> {
+    return this.http.post<User>(this.apiUrl, user);
+  }
+
+
+  update(userId: number, user: Partial<User>): Observable<User> {
+    return this.http.put<User>(`${this.apiUrl}/${userId}`, user);
+  }
+
+  delete(userId: number): Observable<void> {
+    return this.http.delete<void>(`${this.apiUrl}/${userId}`);
   }
 
 
